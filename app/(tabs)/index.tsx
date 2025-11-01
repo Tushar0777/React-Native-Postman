@@ -1,98 +1,119 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, ScrollView, StyleSheet } from 'react-native';
+import axios from 'axios';
+import { Dropdown } from 'react-native-element-dropdown';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function App() {
+  const [url, setUrl] = useState('');
+  const [method, setMethod] = useState('GET');
+  const [body, setBody] = useState('');
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
 
-export default function HomeScreen() {
+  const data = [
+    { label: 'GET', value: 'GET' },
+    { label: 'POST', value: 'POST' },
+    { label: 'PUT', value: 'PUT' },
+    { label: 'DELETE', value: 'DELETE' },
+  ];
+
+  const sendRequest = async () => {
+    try {
+      setLoading(true);
+      const res = await axios({
+        method,
+        url,
+        data: body ? JSON.parse(body) : undefined,
+      });
+      setResponse(JSON.stringify(res.data, null, 2));
+    } catch (err) {
+      setResponse(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
+      <Text style={styles.title}>Mini Postman 🚀</Text>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* Method Dropdown */}
+      <Dropdown
+        style={styles.dropdown}
+        data={data}
+        labelField="label"
+        valueField="value"
+        placeholder="Select Method"
+        value={method}
+        onChange={(item) => setMethod(item.value)}
+      />
+
+      {/* URL Input */}
+      <TextInput
+        style={styles.input}
+        placeholder="Enter request URL"
+        value={url}
+        onChangeText={setUrl}
+        autoCapitalize="none"
+      />
+
+      {/* Request Body (Visible only for POST/PUT) */}
+      {(method === 'POST' || method === 'PUT') && (
+        <TextInput
+          style={[styles.input, { height: 100 }]}
+          placeholder="Enter JSON body"
+          value={body}
+          onChangeText={setBody}
+          multiline
+        />
+      )}
+
+      {/* Send Button */}
+      <Button
+        title={loading ? 'Sending...' : `Send ${method} Request`}
+        onPress={sendRequest}
+      />
+
+      {/* Response Section */}
+      <ScrollView style={styles.responseBox}>
+        <Text style={styles.response}>{response}</Text>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+    color: '#333',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  dropdown: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  responseBox: {
+    marginTop: 16,
+    backgroundColor: '#f4f4f4',
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+  },
+  response: {
+    fontFamily: 'monospace',
+    color: '#333',
   },
 });
