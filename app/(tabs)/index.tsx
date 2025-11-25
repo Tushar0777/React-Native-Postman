@@ -26,7 +26,7 @@ export default function App() {
         data: body ? JSON.parse(body) : undefined,
       });
       setResponse(JSON.stringify(res.data, null, 2));
-    } catch (err) {
+    } catch (err:any) {
       setResponse(err.message);
     } finally {
       setLoading(false);
@@ -48,7 +48,7 @@ export default function App() {
         onChange={(item) => setMethod(item.value)}
       />
 
-      {/* URL Input */}
+      {/* URL ke andar ka input */}
       <TextInput
         style={styles.input}
         placeholder="Enter request URL"
@@ -57,7 +57,7 @@ export default function App() {
         autoCapitalize="none"
       />
 
-      {/* Request Body (Visible only for POST/PUT) */}
+      {/* Request Body (bass for POST/PUT) */}
       {(method === 'POST' || method === 'PUT') && (
         <TextInput
           style={[styles.input, { height: 100 }]}
